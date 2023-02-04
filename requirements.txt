@@ -1,0 +1,4 @@
+textual==0.10.1
+langchain==0.0.76
+openai==0.26.4
+python-dotenv==0.21.1
