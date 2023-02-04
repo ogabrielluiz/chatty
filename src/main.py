@@ -10,9 +10,10 @@ from textual.app import App, ComposeResult
 from textual.containers import Content, Container, Horizontal
 from textual.reactive import reactive
 from textual.widgets import Static, Input, Header, Footer, Button
-from chain.chain import get_chat_gpt_chain
+from chats.agent import get_chat_agent
+from chats.chain import get_chat_gpt_chain
 from dotenv import load_dotenv
-
+from langchain.agents import AgentExecutor
 
 class ChatApp(App):
     """Talk to GPT-3"""
@@ -28,7 +29,7 @@ class ChatApp(App):
         load_dotenv()
         self.chat_history = ""
 
-        self.chain = get_chat_gpt_chain()
+        self.chain = get_chat_agent()
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -72,10 +73,17 @@ class ChatApp(App):
 
         self.query_one(Input).value = ""
 
-        results = self.chain.predict(human_input=message)
+        results = self.predict(message)
         self.query_one(Input).placeholder = "Write your message here."
         chat_gpt_markdown = self.make_chat_gpt_markdown(results)
         self.chat_history = self.chat_history + chat_gpt_markdown
+
+    def predict(self, input: str) -> str:
+        """Get the response from the API and print the results."""
+        if isinstance(self.chain, AgentExecutor):
+            return self.chain.run(input=input)
+        else:
+            return self.chain.predict(human_input=input)
 
     def watch_chat_history(self, value: str) -> None:
         """Called when chat_history changes."""
